@@ -30,6 +30,7 @@ public class RandomWalkMaze : MonoBehaviour
     void Start()
     {
         GenerateMaze();
+        WidenNarrowPaths(); 
         BuildMaze3D();
     }
 
@@ -121,6 +122,51 @@ public class RandomWalkMaze : MonoBehaviour
 
                 // 2. LA CLAVE: Forzamos su posición LOCAL relativa al MazeGenerator
                 newTile.transform.localPosition = localPos;
+            }
+        }
+    }
+    void WidenNarrowPaths()
+    {
+        // Recorremos todo el mapa evitando los bordes extremos
+        for (int x = 1; x < width - 1; x++)
+        {
+            for (int z = 1; z < length - 1; z++)
+            {
+                if (grid[x, z] == 0) // Si la casilla es Suelo
+                {
+                    // 1. Detectar pasillo estrecho horizontal (Pared arriba y abajo)
+                    if (grid[x, z + 1] == 1 && grid[x, z - 1] == 1)
+                    {
+                        // Romper la pared de abajo (asegurando no romper el muro límite del juego)
+                        if (z - 1 > 0) grid[x, z - 1] = 0;
+                        else if (z + 1 < length - 1) grid[x, z + 1] = 0;
+                    }
+                    
+                    // 2. Detectar pasillo estrecho vertical (Pared a izquierda y derecha)
+                    if (grid[x + 1, z] == 1 && grid[x - 1, z] == 1)
+                    {
+                        // Romper la pared izquierda (asegurando no romper el muro límite del juego)
+                        if (x - 1 > 0) grid[x - 1, z] = 0;
+                        else if (x + 1 < width - 1) grid[x + 1, z] = 0;
+                    }
+                }
+            }
+        }
+        
+        // Opcional: Ejecutar la limpieza una segunda vez para asegurar 
+        // que al romper paredes no se crearon cuellos de botella nuevos
+        for (int x = 1; x < width - 1; x++)
+        {
+            for (int z = 1; z < length - 1; z++)
+            {
+                if (grid[x, z] == 0)
+                {
+                    if (grid[x, z + 1] == 1 && grid[x, z - 1] == 1)
+                        if (z - 1 > 0) grid[x, z - 1] = 0;
+                        
+                    if (grid[x + 1, z] == 1 && grid[x - 1, z] == 1)
+                        if (x - 1 > 0) grid[x - 1, z] = 0;
+                }
             }
         }
     }
