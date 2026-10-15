@@ -26,10 +26,15 @@ public class RandomWalkMaze : MonoBehaviour
     [Tooltip("Ajuste de altura para el suelo")]
     public float floorOffsetY = 0f;
 
-    [Header("Comida (NUEVO)")]
+    [Header("Comida")]
     public GameObject applePrefab;
     [Tooltip("Altura extra para que la manzana no quede enterrada en el suelo")]
     public float appleOffsetY = 0.5f;
+
+    [Header("Jugador")]
+    public GameObject snakePlayer;
+    [Tooltip("Altura a la que flotará la serpiente para no tocar el suelo")]
+    public float snakeSpawnHeight = 0.5f;
 
     // Aquí guardaremos todas las posiciones válidas de suelo
     private List<Vector3> validFloorPositions = new List<Vector3>();
@@ -40,11 +45,22 @@ public class RandomWalkMaze : MonoBehaviour
     void Start()
     {
         GenerateMaze();
-        WidenNarrowPaths(); 
+        WidenNarrowPaths();
         BuildMaze3D();
-
-        // Generar la primera manzana al iniciar el juego
         SpawnApple();
+
+        // NUEVO: Posicionar a la serpiente en el centro exacto del mapa
+        if (snakePlayer != null)
+        {
+            // Calculamos la posición central basada en el tamaño del mapa y los tiles
+            Vector3 centerLocalPos = new Vector3((width / 2) * tileSize, snakeSpawnHeight, (length / 2) * tileSize);
+
+            // Movemos la serpiente a esa posición (adaptada a la escala del generador)
+            snakePlayer.transform.position = transform.TransformPoint(centerLocalPos);
+
+            // Reiniciamos su rotación para que mire hacia adelante
+            snakePlayer.transform.rotation = Quaternion.identity;
+        }
     }
 
     void GenerateMaze()
