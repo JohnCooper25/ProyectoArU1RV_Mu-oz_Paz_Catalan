@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class RandomWalkMaze : MonoBehaviour
 {
@@ -25,6 +26,15 @@ public class RandomWalkMaze : MonoBehaviour
     [Tooltip("Ajuste de altura para el suelo")]
     public float floorOffsetY = 0f;
 
+    [Header("Comida (NUEVO)")]
+    public GameObject applePrefab;
+    [Tooltip("Altura extra para que la manzana no quede enterrada en el suelo")]
+    public float appleOffsetY = 0.5f;
+
+    // Aquí guardaremos todas las posiciones válidas de suelo
+    private List<Vector3> validFloorPositions = new List<Vector3>();
+    private GameObject currentApple;
+
     private int[,] grid;
 
     void Start()
@@ -32,6 +42,9 @@ public class RandomWalkMaze : MonoBehaviour
         GenerateMaze();
         WidenNarrowPaths(); 
         BuildMaze3D();
+
+        // Generar la primera manzana al iniciar el juego
+        SpawnApple();
     }
 
     void GenerateMaze()
@@ -100,6 +113,8 @@ public class RandomWalkMaze : MonoBehaviour
 
     void BuildMaze3D()
     {
+        validFloorPositions.Clear(); // Limpiamos la lista por si reiniciamos el nivel
+
         for (int x = 0; x < width; x++)
         {
             for (int z = 0; z < length; z++)
@@ -109,18 +124,18 @@ public class RandomWalkMaze : MonoBehaviour
 
                 if (grid[x, z] == 1)
                 {
-                    // Calculamos la posición
                     localPos = new Vector3(x * tileSize, wallOffsetY, z * tileSize);
-                    // 1. Instanciamos el objeto asignándole el padre directamente (transform)
                     newTile = Instantiate(wallPrefab, transform);
                 }
                 else
                 {
                     localPos = new Vector3(x * tileSize, floorOffsetY, z * tileSize);
                     newTile = Instantiate(floorPrefab, transform);
+
+                    // NUEVO: Guardamos esta posición como un lugar válido para la manzana
+                    validFloorPositions.Add(localPos);
                 }
 
-                // 2. LA CLAVE: Forzamos su posición LOCAL relativa al MazeGenerator
                 newTile.transform.localPosition = localPos;
             }
         }
@@ -169,5 +184,22 @@ public class RandomWalkMaze : MonoBehaviour
                 }
             }
         }
+    }
+    public void SpawnApple()
+    {
+        // 1. Elegir un índice al azar de nuestra lista de suelos
+        int randomIndex = Random.Range(0, validFloorPositions.Count);
+        Vector3 spawnPos = validFloorPositions[randomIndex];
+
+        // Ajustamos la altura para que flote o repose sobre el piso
+        spawnPos.y += appleOffsetY;
+
+        // 2. Si la manzana no existe, la creamos. Si ya existe, solo la movemos.
+        if (currentApple == null)
+        {
+            currentApple = Instantiate(applePrefab, transform);
+        }
+
+        currentApple.transform.localPosition = spawnPos;
     }
 }

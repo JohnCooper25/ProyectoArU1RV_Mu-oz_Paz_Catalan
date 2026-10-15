@@ -803,6 +803,8 @@ MonoBehaviour:
   tileSize: 1
   wallOffsetY: 0.5
   floorOffsetY: 0
+  applePrefab: {fileID: 5219616022592921130, guid: b6545298fe81961479fda36243e95262, type: 3}
+  appleOffsetY: 0.5
 --- !u!1 &1100665754
 GameObject:
   m_ObjectHideFlags: 0
