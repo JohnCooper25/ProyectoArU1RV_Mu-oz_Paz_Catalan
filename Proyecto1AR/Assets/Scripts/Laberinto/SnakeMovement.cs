@@ -6,7 +6,7 @@ public class SnakeMovement : MonoBehaviour
     [Header("Referencias")]
     public RandomWalkMaze scriptLaberinto;
 
-    [Header("Movimiento")]
+    [Header("Movimiento (2D - Ejes X e Y)")]
     public float moveSpeed = 5f;
     public float steerSpeed = 180f;
 
@@ -20,7 +20,7 @@ public class SnakeMovement : MonoBehaviour
 
     private float turnInput;
 
-    // NUEVO: Bandera para saber si perdimos
+    // Bandera para saber si perdimos
     private bool isDead = false;
 
     void Update()
@@ -31,10 +31,15 @@ public class SnakeMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isDead) return; // NUEVO: Detiene el avance de la serpiente
+        if (isDead) return;
 
-        transform.position += transform.forward * moveSpeed * Time.fixedDeltaTime;
-        transform.Rotate(Vector3.up * turnInput * steerSpeed * Time.fixedDeltaTime);
+        // 1. AVANCE 2D: Se mueve hacia "arriba" en su propio eje Y
+        transform.position += transform.up * moveSpeed * Time.fixedDeltaTime;
+
+        // 2. GIRO 2D: Rota sobre el eje Z. 
+        // Usamos negativo (-turnInput) para que al presionar la flecha derecha, 
+        // gire en sentido horario (como es natural en 2D). Si lo notas invertido, quítale el signo menos.
+        transform.Rotate(0, 0, -turnInput * steerSpeed * Time.fixedDeltaTime);
 
         positionHistory.Insert(0, transform.position);
         rotationHistory.Insert(0, transform.rotation);
@@ -62,6 +67,10 @@ public class SnakeMovement : MonoBehaviour
     public void Grow()
     {
         GameObject body = Instantiate(bodyPrefab);
+
+        // Es una buena práctica hacer que los bloques del cuerpo sean hijos del mismo contenedor
+        body.transform.SetParent(transform.parent);
+
         // Ajustamos la escala del cuerpo para que coincida con la cabeza
         body.transform.localScale = transform.localScale;
         bodyParts.Add(body);
@@ -83,8 +92,8 @@ public class SnakeMovement : MonoBehaviour
         {
             Debug.Log("¡Choque con pared! Dando la vuelta...");
 
-            // Rota exactamente 180 grados en el eje Y (dirección opuesta)
-            transform.Rotate(0, 180f, 0);
+            // 3. REBOTE 2D: Darse la vuelta ahora significa rotar 180 grados en el eje Z
+            transform.Rotate(0, 0, 180f);
         }
     }
 }
