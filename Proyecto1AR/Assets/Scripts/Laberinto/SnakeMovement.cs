@@ -3,13 +3,15 @@ using System.Collections.Generic;
 
 public class SnakeMovement : MonoBehaviour
 {
+    [Header("Referencias")]
+    public RandomWalkMaze scriptLaberinto;
+
     [Header("Movimiento")]
     public float moveSpeed = 5f;
     public float steerSpeed = 180f;
 
     [Header("Crecimiento del Cuerpo")]
     public GameObject bodyPrefab;
-    [Tooltip("Qué tan separadas están las piezas del cuerpo")]
     public int gap = 10;
 
     private List<GameObject> bodyParts = new List<GameObject>();
@@ -18,13 +20,19 @@ public class SnakeMovement : MonoBehaviour
 
     private float turnInput;
 
+    // NUEVO: Bandera para saber si perdimos
+    private bool isDead = false;
+
     void Update()
     {
+        if (isDead) return; // Si choca, ya no recibe controles
         turnInput = Input.GetAxis("Horizontal");
     }
 
     void FixedUpdate()
     {
+        if (isDead) return; // NUEVO: Detiene el avance de la serpiente
+
         transform.position += transform.forward * moveSpeed * Time.fixedDeltaTime;
         transform.Rotate(Vector3.up * turnInput * steerSpeed * Time.fixedDeltaTime);
 
@@ -54,6 +62,8 @@ public class SnakeMovement : MonoBehaviour
     public void Grow()
     {
         GameObject body = Instantiate(bodyPrefab);
+        // Ajustamos la escala del cuerpo para que coincida con la cabeza
+        body.transform.localScale = transform.localScale;
         bodyParts.Add(body);
     }
 
@@ -61,12 +71,20 @@ public class SnakeMovement : MonoBehaviour
     {
         if (other.CompareTag("Comida"))
         {
+            Debug.Log("¡ÑAM ÑAM! Comiste una manzana.");
             Grow();
-            FindObjectOfType<RandomWalkMaze>().SpawnApple();
+
+            if (scriptLaberinto != null)
+            {
+                scriptLaberinto.SpawnApple();
+            }
         }
         else if (other.CompareTag("Pared"))
         {
-            Debug.Log("¡Chocaste contra una pared!");
+            Debug.Log("¡Choque con pared! Dando la vuelta...");
+
+            // Rota exactamente 180 grados en el eje Y (dirección opuesta)
+            transform.Rotate(0, 180f, 0);
         }
     }
 }

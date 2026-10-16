@@ -724,9 +724,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 614257775}
   - {fileID: 1050240322}
   - {fileID: 1543539766}
-  - {fileID: 614257775}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1003371559
@@ -774,8 +774,8 @@ Transform:
   m_GameObject: {fileID: 1050240321}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: -2.116, z: -1}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalPosition: {x: 0.233, y: 0, z: 0}
+  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1003371558}
@@ -792,8 +792,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a74e3ce039b31a14aae7e34d6abb5813, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RandomWalkMaze
-  width: 20
-  length: 20
+  width: 15
+  length: 15
   maxFloorTiles: 150
   minCorridorLength: 1
   maxCorridorLength: 7
@@ -802,12 +802,12 @@ MonoBehaviour:
   wallPrefab: {fileID: 5173543106052188959, guid: 91ee08fd9364a3544b92764a5566d8a7, type: 3}
   floorPrefab: {fileID: 294298224096634049, guid: 0d570d942aa281046ac139c767e4592b, type: 3}
   tileSize: 1
-  wallOffsetY: 0.5
+  wallOffsetY: 0.05
   floorOffsetY: 0
   applePrefab: {fileID: 5219616022592921130, guid: b6545298fe81961479fda36243e95262, type: 3}
   appleOffsetY: 0.5
   snakePlayer: {fileID: 1543539760}
-  snakeSpawnHeight: 0.5
+  snakeSpawnHeight: 0.6
 --- !u!1 &1100665754
 GameObject:
   m_ObjectHideFlags: 0
@@ -1438,6 +1438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a25cdc43a7bee54e9189980781bdad5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakeMovement
+  scriptLaberinto: {fileID: 1050240323}
   moveSpeed: 0.2
   steerSpeed: 180
   bodyPrefab: {fileID: 4700252592909201901, guid: eaebe90e5074a6047964d7b163afe935, type: 3}
@@ -1447,19 +1448,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 465746055018937506, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
   m_PrefabInstance: {fileID: 2694627191198771453}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1543539767
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1543539760}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86d53864cadf3bd44bd22351a223de43, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ColisionesSerpiente
-  scriptLaberinto: {fileID: 0}
 --- !u!1 &1768211654
 GameObject:
   m_ObjectHideFlags: 0
@@ -1582,15 +1570,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 465746055018937506, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 465746055018937506, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 465746055018937506, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 465746055018937506, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1632,6 +1620,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 935802419819104227, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4700252592909201901, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1643,9 +1635,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4700252592909201901, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1543539762}
-    - targetCorrespondingSourceObject: {fileID: 4700252592909201901, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1543539767}
   m_SourcePrefab: {fileID: 100100000, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

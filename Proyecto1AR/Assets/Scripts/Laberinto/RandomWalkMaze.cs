@@ -4,8 +4,8 @@ using System.Collections.Generic;
 public class RandomWalkMaze : MonoBehaviour
 {
     [Header("Configuración del Mapa")]
-    public int width = 30;
-    public int length = 30;
+    public int width = 20;
+    public int length = 20;
     public int maxFloorTiles = 400;
 
     [Header("Comportamiento del Laberinto")]
@@ -20,7 +20,7 @@ public class RandomWalkMaze : MonoBehaviour
 
     [Header("Ajustes de Modelos 3D (NUEVO)")]
     [Tooltip("El tamaño real de tus bloques. Si tu cubo mide 2x2, pon 2. Si mide 0.5, pon 0.5")]
-    public float tileSize = 1f;
+    public float tileSize = 0.5f;
     [Tooltip("Ajuste de altura para la pared (0.5 para cubos por defecto, 0 para modelos con pivote en la base)")]
     public float wallOffsetY = 0.5f;
     [Tooltip("Ajuste de altura para el suelo")]
@@ -46,19 +46,20 @@ public class RandomWalkMaze : MonoBehaviour
     {
         GenerateMaze();
         WidenNarrowPaths();
-        BuildMaze3D();
+        BuildMaze3D(); // Aquí se llena validFloorPositions
         SpawnApple();
 
-        // NUEVO: Posicionar a la serpiente en el centro exacto del mapa
-        if (snakePlayer != null)
+        // NUEVO: Posicionar a la serpiente en una casilla de suelo confirmada
+        if (snakePlayer != null && validFloorPositions.Count > 0)
         {
-            // Calculamos la posición central basada en el tamaño del mapa y los tiles
-            Vector3 centerLocalPos = new Vector3((width / 2) * tileSize, snakeSpawnHeight, (length / 2) * tileSize);
+            // Elegimos una posición de suelo segura (por ejemplo, una hacia el centro de la lista)
+            Vector3 safePos = validFloorPositions[validFloorPositions.Count / 2];
 
-            // Movemos la serpiente a esa posición (adaptada a la escala del generador)
-            snakePlayer.transform.position = transform.TransformPoint(centerLocalPos);
+            // Le aplicamos tu altura configurada
+            safePos.y = snakeSpawnHeight;
 
-            // Reiniciamos su rotación para que mire hacia adelante
+            // Movemos la serpiente
+            snakePlayer.transform.position = transform.TransformPoint(safePos);
             snakePlayer.transform.rotation = Quaternion.identity;
         }
     }
