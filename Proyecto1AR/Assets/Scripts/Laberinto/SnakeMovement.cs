@@ -19,13 +19,17 @@ public class SnakeMovement : MonoBehaviour
     private List<Quaternion> rotationHistory = new List<Quaternion>();
 
     private float turnInput;
-
-    // Bandera para saber si perdimos
     private bool isDead = false;
+    private Quaternion rotacionInicial;
+
+    void Awake()
+    {
+        rotacionInicial = transform.rotation;
+    }
 
     void Update()
     {
-        if (isDead) return; // Si choca, ya no recibe controles
+        if (isDead) return;
         turnInput = Input.GetAxis("Horizontal");
     }
 
@@ -33,12 +37,7 @@ public class SnakeMovement : MonoBehaviour
     {
         if (isDead) return;
 
-        // 1. AVANCE 2D: Se mueve hacia "arriba" en su propio eje Y
         transform.position += transform.up * moveSpeed * Time.fixedDeltaTime;
-
-        // 2. GIRO 2D: Rota sobre el eje Z. 
-        // Usamos negativo (-turnInput) para que al presionar la flecha derecha, 
-        // gire en sentido horario (como es natural en 2D). Si lo notas invertido, quítale el signo menos.
         transform.Rotate(0, 0, -turnInput * steerSpeed * Time.fixedDeltaTime);
 
         positionHistory.Insert(0, transform.position);
@@ -67,17 +66,15 @@ public class SnakeMovement : MonoBehaviour
     public void Grow()
     {
         GameObject body = Instantiate(bodyPrefab);
-
-        // Es una buena práctica hacer que los bloques del cuerpo sean hijos del mismo contenedor
         body.transform.SetParent(transform.parent);
-
-        // Ajustamos la escala del cuerpo para que coincida con la cabeza
         body.transform.localScale = transform.localScale;
         bodyParts.Add(body);
     }
 
     void OnTriggerEnter(Collider other)
     {
+        if (isDead) return;
+
         if (other.CompareTag("Comida"))
         {
             Debug.Log("¡ÑAM ÑAM! Comiste una manzana.");
@@ -90,10 +87,38 @@ public class SnakeMovement : MonoBehaviour
         }
         else if (other.CompareTag("Pared"))
         {
-            Debug.Log("¡Choque con pared! Dando la vuelta...");
-
-            // 3. REBOTE 2D: Darse la vuelta ahora significa rotar 180 grados en el eje Z
-            transform.Rotate(0, 0, 180f);
+            Morir();
         }
+    }
+
+    void Morir()
+    {
+        isDead = true;
+        Debug.Log("¡Choque con pared! Generando un mapa nuevo...");
+
+        ResetearSerpiente();
+
+        // El generador borra el mapa viejo, crea uno nuevo
+        // y al final vuelve a posicionar a la serpiente en el centro
+        if (scriptLaberinto != null)
+        {
+            scriptLaberinto.GenerarTodo();
+        }
+
+        turnInput = 0f;
+        isDead = false;
+    }
+
+    void ResetearSerpiente()
+    {
+        foreach (GameObject b in bodyParts)
+        {
+            if (b != null) Destroy(b);
+        }
+        bodyParts.Clear();
+        positionHistory.Clear();
+        rotationHistory.Clear();
+
+        transform.rotation = rotacionInicial;
     }
 }

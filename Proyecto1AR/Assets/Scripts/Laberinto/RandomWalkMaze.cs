@@ -6,7 +6,7 @@ public class RandomWalkMaze : MonoBehaviour
     [Header("Configuración del Mapa")]
     public int width = 20;
     public int length = 20;
-    public int maxFloorTiles = 400;
+    public int maxFloorTiles = 300;
 
     [Header("Comportamiento del Laberinto")]
     public int minCorridorLength = 3;
@@ -31,17 +31,42 @@ public class RandomWalkMaze : MonoBehaviour
     [Tooltip("Altura extra para que la manzana no quede enterrada en el suelo")]
     public float appleOffsetY = 0.5f;
 
-    // Aquí guardaremos todas las posiciones válidas de suelo
+    [Header("Jugador")]
+    public GameObject snakePlayer;
+
+    [Header("Generación")]
+    [Tooltip("Si lo desactivas, el mapa solo se genera cuando llames a GenerarTodo() desde otro script")]
+    public bool generarAlIniciar = true;
+
     private List<Vector3> validFloorPositions = new List<Vector3>();
+    private List<GameObject> tiles = new List<GameObject>();
     private GameObject currentApple;
     private int[,] grid;
 
     void Start()
     {
+        if (generarAlIniciar) GenerarTodo();
+    }
+
+    // Llama a esto desde tu activador del juego o desde la serpiente al morir
+    public void GenerarTodo()
+    {
+        LimpiarMapa();
         GenerateMaze();
         WidenNarrowPaths();
-        BuildMaze3D(); // Aquí se llena validFloorPositions
+        BuildMaze3D();
         SpawnApple();
+        PosicionarJugador();
+    }
+
+    void LimpiarMapa()
+    {
+        foreach (GameObject t in tiles)
+        {
+            if (t != null) Destroy(t);
+        }
+        tiles.Clear();
+        validFloorPositions.Clear();
     }
 
     void GenerateMaze()
@@ -55,19 +80,27 @@ public class RandomWalkMaze : MonoBehaviour
             }
         }
 
+        // Seguro anti-bucle infinito: no se pueden tallar más casillas que las interiores
+        int maxPosibles = (width - 2) * (length - 2);
+        int objetivo = Mathf.Min(maxFloorTiles, maxPosibles);
+
         int currentX = width / 2;
         int currentZ = length / 2;
         int tilesCarved = 0;
+        int intentos = 0;
+        int maxIntentos = 10000;
 
-        while (tilesCarved < maxFloorTiles)
+        while (tilesCarved < objetivo && intentos < maxIntentos)
         {
+            intentos++;
+
             int dir = Random.Range(0, 4);
             int corridorLength = Random.Range(minCorridorLength, maxCorridorLength + 1);
             int currentPathWidth = Random.Range(minPathWidth, maxPathWidth + 1);
 
             for (int i = 0; i < corridorLength; i++)
             {
-                if (tilesCarved >= maxFloorTiles) break;
+                if (tilesCarved >= objetivo) break;
 
                 int nextX = currentX;
                 int nextZ = currentZ;
@@ -132,6 +165,7 @@ public class RandomWalkMaze : MonoBehaviour
                 }
 
                 newTile.transform.localPosition = localPos;
+                tiles.Add(newTile);
             }
         }
     }
@@ -175,8 +209,85 @@ public class RandomWalkMaze : MonoBehaviour
         }
     }
 
+    public void PosicionarJugador()
+    {
+        if (snakePlayer == null) return;
+
+        int centerX = width / 2;
+        int centerZ = length / 2;
+
+        List<Vector2Int> mejoresOpciones = new List<Vector2Int>();
+        Queue<Vector2Int> cola = new Queue<Vector2Int>();
+        bool[,] visitado = new bool[width, length];
+
+        cola.Enqueue(new Vector2Int(centerX, centerZ));
+        visitado[centerX, centerZ] = true;
+
+        Vector2Int[] direcciones = new Vector2Int[]
+        {
+            new Vector2Int(0, 1), new Vector2Int(0, -1),
+            new Vector2Int(1, 0), new Vector2Int(-1, 0)
+        };
+
+        // Búsqueda por capas desde el centro (BFS)
+        while (cola.Count > 0 && mejoresOpciones.Count == 0)
+        {
+            int casillasEnEstaCapa = cola.Count;
+
+            for (int i = 0; i < casillasEnEstaCapa; i++)
+            {
+                Vector2Int actual = cola.Dequeue();
+
+                if (grid[actual.x, actual.y] == 0)
+                {
+                    mejoresOpciones.Add(actual);
+                }
+
+                if (mejoresOpciones.Count == 0)
+                {
+                    foreach (Vector2Int dir in direcciones)
+                    {
+                        int nx = actual.x + dir.x;
+                        int nz = actual.y + dir.y;
+
+                        if (nx >= 0 && nx < width && nz >= 0 && nz < length)
+                        {
+                            if (!visitado[nx, nz])
+                            {
+                                visitado[nx, nz] = true;
+                                cola.Enqueue(new Vector2Int(nx, nz));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (mejoresOpciones.Count > 0)
+        {
+            Vector2Int casilla = mejoresOpciones[Random.Range(0, mejoresOpciones.Count)];
+
+            // Posición de la casilla en el espacio local del laberinto
+            Vector3 posLocalLaberinto = new Vector3(
+                casilla.x * tileSize,
+                floorOffsetY,
+                casilla.y * tileSize
+            );
+
+            // A coordenadas de mundo, respetando posición/rotación/escala del laberinto
+            Vector3 posMundo = transform.TransformPoint(posLocalLaberinto);
+
+            // Conservamos la profundidad actual del snake
+            posMundo.z = snakePlayer.transform.position.z;
+
+            snakePlayer.transform.position = posMundo;
+        }
+    }
+
     public void SpawnApple()
     {
+        if (validFloorPositions.Count == 0 || applePrefab == null) return;
+
         int randomIndex = Random.Range(0, validFloorPositions.Count);
         Vector3 spawnPos = validFloorPositions[randomIndex];
         spawnPos.y += appleOffsetY;
