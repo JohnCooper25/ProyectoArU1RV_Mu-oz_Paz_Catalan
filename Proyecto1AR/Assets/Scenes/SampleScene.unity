@@ -709,7 +709,9 @@ MonoBehaviour:
   moveSpeed: 2.5
   steerSpeed: 180
   bodyPrefab: {fileID: 4700252592909201901, guid: eaebe90e5074a6047964d7b163afe935, type: 3}
+  tailPrefab: {fileID: 4700252592909201901, guid: 21b650073b0d089499112ce399d92fca, type: 3}
   gap: 10
+  segmentosSinColision: 3
 --- !u!4 &1543539766 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 465746055018937506, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
@@ -723,6 +725,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1478578464}
     m_Modifications:
+    - target: {fileID: -5134074994410931361, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 465746055018937506, guid: 4d4b1c873a2b55e4fac0d9522cddf2c6, type: 3}
       propertyPath: m_LocalScale.x
       value: 1

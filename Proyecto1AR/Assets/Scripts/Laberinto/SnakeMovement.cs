@@ -12,8 +12,15 @@ public class SnakeMovement : MonoBehaviour
 
     [Header("Crecimiento del Cuerpo")]
     public GameObject bodyPrefab;
+    [Tooltip("Prefab del último segmento (la cola). Si se deja vacío usa el del cuerpo")]
+    public GameObject tailPrefab;
     public int gap = 10;
 
+    [Header("Colisión con el cuerpo")]
+    [Tooltip("Cuántos segmentos pegados a la cabeza se ignoran para no morir por rozarlos")]
+    public int segmentosSinColision = 2;
+
+    // El último elemento de esta lista siempre es la cola
     private List<GameObject> bodyParts = new List<GameObject>();
     private List<Vector3> positionHistory = new List<Vector3>();
     private List<Quaternion> rotationHistory = new List<Quaternion>();
@@ -65,10 +72,26 @@ public class SnakeMovement : MonoBehaviour
 
     public void Grow()
     {
-        GameObject body = Instantiate(bodyPrefab);
-        body.transform.SetParent(transform.parent);
-        body.transform.localScale = transform.localScale;
-        bodyParts.Add(body);
+        // Primera manzana: lo único que aparece es la cola
+        if (bodyParts.Count == 0)
+        {
+            GameObject prefabCola = tailPrefab != null ? tailPrefab : bodyPrefab;
+            bodyParts.Add(CrearSegmento(prefabCola, transform.position, transform.rotation));
+            return;
+        }
+
+        // Siguientes manzanas: el segmento nuevo se inserta justo antes de la cola
+        GameObject cola = bodyParts[bodyParts.Count - 1];
+        GameObject nuevo = CrearSegmento(bodyPrefab, cola.transform.position, cola.transform.rotation);
+        bodyParts.Insert(bodyParts.Count - 1, nuevo);
+    }
+
+    GameObject CrearSegmento(GameObject prefab, Vector3 pos, Quaternion rot)
+    {
+        GameObject segmento = Instantiate(prefab, pos, rot);
+        segmento.transform.SetParent(transform.parent);
+        segmento.transform.localScale = transform.localScale;
+        return segmento;
     }
 
     void OnTriggerEnter(Collider other)
@@ -87,19 +110,29 @@ public class SnakeMovement : MonoBehaviour
         }
         else if (other.CompareTag("Pared"))
         {
+            Debug.Log("¡Choque con pared!");
             Morir();
+        }
+        else
+        {
+            // ¿Es un segmento de mi propio cuerpo (la cola incluida)?
+            int indice = bodyParts.IndexOf(other.gameObject);
+
+            if (indice >= segmentosSinColision)
+            {
+                Debug.Log("¡Te mordiste a ti misma!");
+                Morir();
+            }
         }
     }
 
     void Morir()
     {
         isDead = true;
-        Debug.Log("¡Choque con pared! Generando un mapa nuevo...");
+        Debug.Log("Generando un mapa nuevo...");
 
         ResetearSerpiente();
 
-        // El generador borra el mapa viejo, crea uno nuevo
-        // y al final vuelve a posicionar a la serpiente en el centro
         if (scriptLaberinto != null)
         {
             scriptLaberinto.GenerarTodo();
